@@ -1,4 +1,55 @@
-html { font-family: sans-serif; background: #17263a; padding: 1rem; }
-body { max-width: 960px; margin: 0 auto; background: #17263a; }
-h1 { font-family: serif; color: #ffffff; margin: 1rem 0; }
-input[type=submit] { align-self: start; min-width: 10em; }
+html { 
+    font-family: sans-serif; 
+    background: #798ba3; 
+    padding: 1rem; 
+}
+header {  
+    background-color: #17263a;  
+    position: fixed;  
+    left: 0;  
+    right: 0;  
+    top: 1px;  
+    height: 40px;  
+    display: flex;  
+    align-items: center;  
+    box-shadow: 0 0 25px 0 black;  
+}  
+header * {  
+    display: inline;  
+}  
+header li {  
+    margin: 20px;
+    text-align: center; 
+}  
+header li a {  
+    color: #ffffff;  
+    text-decoration: none;  
+} 
+body { 
+    background: #17263a; 
+}
+h1 { 
+    font-family: serif; 
+    color: #ffffff; 
+}
+input[type=submit] { 
+    min-width: 10em; 
+}
+label {
+    font-family: serif; 
+    color: #ffffff;
+}
+.content {
+    height: 200px;
+    position: relative;
+    border: 3px #ffffff;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+.logo {
+    margin: 20px;
+}

@@ -1,23 +1,24 @@
-from flask import Flask, request,url_for
+from flask import Flask, request, url_for, render_template
+import os
 
 app = Flask(__name__)
 
+@app.context_processor #allows CSS to update (bypass browser cache)
+def override_url_for():
+    return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename', None)
+        if filename:
+            file_path = os.path.join(app.root_path,
+                                 endpoint, filename)
+            values['q'] = int(os.stat(file_path).st_mtime)
+    return url_for(endpoint, **values)
 
 @app.route("/")
 def hello_world():
-    html = f"""
-            <html>
-                <link rel= "stylesheet" type= "text/css" href="{ url_for('static',filename='style.css') }">
-                <h1>Sleeper Analysis</h1> 
-                <form action="/home" id="username"> 
-                    <label for="username">Username: </label>
-                    <input type="text" id = "username" name = "username"></input>
-                    <br><br>
-                    <input type="submit" value="Submit">
-                </form>
-            </html>
-            """
-    return html
+    return render_template("home.html")
 
 @app.route("/home")
 def home():
