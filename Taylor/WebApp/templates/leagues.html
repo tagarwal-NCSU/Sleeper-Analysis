@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html>
     <link rel= "stylesheet" type= "text/css" href="{{ url_for('static',filename='style.css') }}">
     <body>
@@ -14,14 +14,14 @@
             </nav>  
         </header>
         <div class="content">
-            <img src="{{ url_for('static',filename='pillow.png') }}" alt="Logo" height="100px"><br>
-            <h1>Pillow: A Sleeper Tool</h1> 
-            <form action="/leagues" id="login"> 
-                <label for="username">Username: </label>
-                <input type="text" id="username" name="username"></input>
-                <br><br>
-                <input type="submit" value="Submit">
-            </form>
+            <ul class="leaguelist">
+                {%for i in range(0, length)%}
+                <li>
+                    <a href="/dash?league_id={{league_ids[i]}}">{{league_names[i]}}</a>
+                </li>
+                {%endfor%}
+            </ul>
         </div>
     </body>
+</html>
 </html>

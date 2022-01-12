@@ -45,11 +45,23 @@ label {
     border: 3px #ffffff;
     margin: 0;
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
 }
 .logo {
     margin: 20px;
+}
+.leaguelist {
+    border: 100px #ffffff;
+}
+.leaguelist li { 
+    margin: 20px;
+    text-align: center; 
+    list-style-type: none;
+}
+.leaguelist li a {
+    color: #ffffff;  
+    text-decoration: none;
 }

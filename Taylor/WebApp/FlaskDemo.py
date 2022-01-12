@@ -1,5 +1,6 @@
-from flask import Flask, request, url_for, render_template
+from flask import Flask, request, url_for, render_template, redirect
 import os
+import requests
 
 app = Flask(__name__)
 
@@ -17,20 +18,54 @@ def dated_url_for(endpoint, **values):
     return url_for(endpoint, **values)
 
 @app.route("/")
-def hello_world():
+def home():
     return render_template("home.html")
 
-@app.route("/home")
-def home():
+@app.route("/leagues")
+def leagues():
+    # find user's sleeper username
     username = request.args.get('username', "-")
-    
-    html = f"""
-            <html>
-                <link rel= "stylesheet" type= "text/css" href="{ url_for('static',filename='style.css') }">
-                <h1>Your username is {username}</h1>
-            </html>
-            """
+    URL = f"https://api.sleeper.app/v1/user/{username}"
 
-    return html
+    # find their corresponding sleeper user id    
+    response = requests.get(URL)
+    if response.status_code != 200: #If the username is invalid
+        return redirect(url_for(''))
+    user_id = response.json()
+    user_id = user_id['user_id']
 
-app.run(debug = True)
+    # set season to 2021 to look at last year's response
+    season = '2021'
+    sport = 'nfl' #only sport currently possible for this API
+    URL = f"https://api.sleeper.app/v1/user/{user_id}/leagues/{sport}/{season}"
+    response = requests.get(URL)
+    leagues = response.json()
+
+    # create loop to pull out just their league names
+    length = len(leagues) # find length of their #of leagues by looking at number of items within their leagues object
+    league_ids = [league['league_id'] for league in leagues]
+    league_names = [league['name'] for league in leagues]
+    return render_template("leagues.html", length = length, league_ids = league_ids, league_names = league_names)
+
+@app.route("/dash")
+def dash():
+    league_id = request.args.get('league_id', "-")
+    if str(league_id) == "-":
+        return redirect(url_for(''))
+
+    # Get data
+    # df = ...
+
+    # Build Fig
+    # fig = px ...
+
+    # Convert to JSON
+    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # Render template
+    # render_template('dash.html', graphJSON=graphJSON)
+
+    return f"<p> VIZ FOR {league_id} HERE </p>"
+
+if __name__ == "__main__":
+    app.run(debug = True)
