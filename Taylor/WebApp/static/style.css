@@ -8,7 +8,7 @@ header {
     position: fixed;  
     left: 0;  
     right: 0;  
-    top: 1px;  
+    top: 0px;  
     height: 40px;  
     display: flex;  
     align-items: center;  
@@ -53,11 +53,16 @@ label {
 .logo {
     margin: 20px;
 }
+.leaguebody {
+    background: #798ba3; 
+}
 .leaguelist {
     border: 100px #ffffff;
 }
 .leaguelist li { 
-    margin: 20px;
+    background: #17263a;
+    padding: 15px;
+    margin: 5px;
     text-align: center; 
     list-style-type: none;
 }

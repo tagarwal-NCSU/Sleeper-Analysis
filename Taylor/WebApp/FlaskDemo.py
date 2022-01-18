@@ -2,7 +2,14 @@ from flask import Flask, request, url_for, render_template, redirect
 import os
 import requests
 
+# Visualization Example Here:
+# https://towardsdatascience.com/web-visualization-with-plotly-and-flask-3660abf9c946
+
 app = Flask(__name__)
+
+URL = ""https://api.sleeper.app/v1/players/nfl""
+response = requests.get(URL)
+PLAYER_DICTIONARY = response.json()
 
 @app.context_processor #allows CSS to update (bypass browser cache)
 def override_url_for():
