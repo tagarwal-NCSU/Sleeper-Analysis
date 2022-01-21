@@ -1,17 +1,26 @@
 from flask import Flask, request, url_for, render_template, redirect
+import dash
 import os
 import requests
+import pandas as pd
+import json
+import plotly
+import plotly.express as px
+import dash_core_components as dcc
+import dash_html_components as html
 
 # Visualization Example Here:
 # https://towardsdatascience.com/web-visualization-with-plotly-and-flask-3660abf9c946
 
-app = Flask(__name__)
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server)
+app.layout = html.Div()
 
-URL = ""https://api.sleeper.app/v1/players/nfl""
+URL = "https://api.sleeper.app/v1/players/nfl"
 response = requests.get(URL)
 PLAYER_DICTIONARY = response.json()
 
-@app.context_processor #allows CSS to update (bypass browser cache)
+@server.context_processor #allows CSS to update (bypass browser cache)
 def override_url_for():
     return dict(url_for=dated_url_for)
 
@@ -19,16 +28,16 @@ def dated_url_for(endpoint, **values):
     if endpoint == 'static':
         filename = values.get('filename', None)
         if filename:
-            file_path = os.path.join(app.root_path,
+            file_path = os.path.join(server.root_path,
                                  endpoint, filename)
             values['q'] = int(os.stat(file_path).st_mtime)
     return url_for(endpoint, **values)
 
-@app.route("/")
+@server.route("/")
 def home():
     return render_template("home.html")
 
-@app.route("/leagues")
+@server.route("/leagues")
 def leagues():
     # find user's sleeper username
     username = request.args.get('username', "-")
@@ -54,25 +63,37 @@ def leagues():
     league_names = [league['name'] for league in leagues]
     return render_template("leagues.html", length = length, league_ids = league_ids, league_names = league_names)
 
-@app.route("/dash")
-def dash():
+@server.route("/viz")
+def viz():
     league_id = request.args.get('league_id', "-")
     if str(league_id) == "-":
         return redirect(url_for(''))
+    
+    #stats = result of API call
 
-    # Get data
-    # df = ...
+    df = pd.DataFrame({"Category": ["a", "b", "c"], "Value": [1, 2, 3]})
 
     # Build Fig
-    # fig = px ...
+    fig = px.bar(df, x = "Category", y = "Value")
 
-    # Convert to JSON
-    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    df = pd.DataFrame({"Category": ["a", "b", "c"], "Value": [3, 2, 1]})
 
+    # Build Fig
+    fig2 = px.bar(df, x = "Category", y = "Value")
+
+    app.layout = html.Div(children = [
+        html.H1("Hello!"),
+        dcc.Graph(
+            id = 'example',
+            figure = fig
+            ),
+        dcc.Graph(
+            id = 'example',
+            figure = fig2
+            )
+    ])
     # Render template
-    # render_template('dash.html', graphJSON=graphJSON)
-
-    return f"<p> VIZ FOR {league_id} HERE </p>"
+    return app.index()
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    server.run(debug = True)
