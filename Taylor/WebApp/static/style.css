@@ -59,14 +59,14 @@ label {
 .leaguelist {
     border: 100px #ffffff;
 }
-.leaguelist li { 
+.leaguelist td { 
     background: #17263a;
     padding: 15px;
     margin: 5px;
     text-align: center; 
     list-style-type: none;
 }
-.leaguelist li a {
+.leaguelist td a {
     color: #ffffff;  
     text-decoration: none;
 }

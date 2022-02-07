@@ -13,13 +13,19 @@
             </nav>  
         </header>
         <div class="content">
-            <ul class="leaguelist">
-                {%for i in range(0, length)%}
-                <li>
-                    <a href="/viz?league_id={{league_ids[i]}}">{{league_names[i]}}</a>
-                </li>
+            <table class="leaguelist">
+            {%for j in range(0, height)%}
+            <tr>
+                {%for i in range(0, width+1)%}
+                {%if (j * width + i) < total_leagues%}
+                <td>
+                    <a href="/viz?league_id={{league_ids[(j * width + i)]}}">{{league_names[(j * width + i)]}}</a>
+                </td>
+                {%endif%}
                 {%endfor%}
-            </ul>
+            </tr>
+            {%endfor%}
+            </table>
         </div>
     </body>
 </html>
