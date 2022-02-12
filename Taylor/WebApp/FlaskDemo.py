@@ -92,35 +92,64 @@ def leagues():
         width = 1
     league_ids = [league['league_id'] for league in leagues]
     league_names = [league['name'] for league in leagues]
-    return render_template("leagues.html", total_leagues = total_leagues, league_ids = league_ids, league_names = league_names)
+    return render_template("leagues.html", 
+                            total_leagues = total_leagues, 
+                            league_ids = league_ids, 
+                            league_names = league_names,
+                            username = username)
 
 @server.route("/viz")
 def viz():
     league_id = request.args.get('league_id', "-")
+    username = request.args.get('username', "-")
     if str(league_id) == "-":
         return redirect(url_for(''))
 
     stats = fetch_data(league_id)
 
-    df = pd.DataFrame({"Category": ["a", "b", "c"], "Value": [1, 2, 3]})
+    scale = "sunsetdark"
 
-    # Build Fig
-    fig = px.bar(df, x = "Category", y = "Value")
+    point_settings = "pts_half_ppr"
 
-    df = pd.DataFrame({"Category": ["a", "b", "c"], "Value": [3, 2, 1]})
-
-    # Build Fig
-    fig2 = px.bar(df, x = "Category", y = "Value")
+    avg_age_position = get_avg_age_position(stats)
+    avg_age_overall = get_avg_age_overall(stats, scale)
+    # player_line_graphs = get_player_line_graphs(stats, username)
+    RB_YPC_YPR, RB_TD, RB_PPG, RB_YPG = get_RB_stats(stats, username, point_settings, scale)
+    PPG = get_PPG(stats, username, point_settings, scale)
 
     app.layout = html.Div(children = [
         html.H1("Hello!"),
         dcc.Graph(
             id = 'example',
-            figure = fig
+            figure = avg_age_position
             ),
         dcc.Graph(
             id = 'example',
-            figure = fig2
+            figure = avg_age_overall
+            ),
+        # dcc.Graph(
+        #     id = 'example',
+        #     figure = player_line_graphs
+        #     ),
+        dcc.Graph(
+            id = 'example',
+            figure = RB_YPC_YPR
+            ),
+        dcc.Graph(
+            id = 'example',
+            figure = RB_TD
+            ),
+        dcc.Graph(
+            id = 'example',
+            figure = RB_PPG
+            ),
+        dcc.Graph(
+            id = 'example',
+            figure = RB_YPG
+            ),
+        dcc.Graph(
+            id = 'example',
+            figure = PPG
             )
     ])
     # Render template
@@ -224,5 +253,134 @@ def fetch_data(league_id):
     stats = pd.concat([df, df_season])
 
     return stats
+
+def get_avg_age_position(stats):
+    age2 = stats[stats["Week"] == "Season"][["Owner", "age", "position", "Week"]]
+    age2 = age2.groupby(["Owner", "position"]).agg({"age": np.mean})
+    age2 = age2.reset_index()
+    fig = px.bar(age2, y = "age", x = "Owner", color = "position", barmode = "group")
+    fig.update_layout(xaxis={'categoryorder':'total ascending'})
+    fig.update_yaxes(range = [18,45])
+    fig.update_layout(title_text="Average Age by Position", title_x=0.5)
+    fig.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
+    return fig
+
+def get_avg_age_overall(stats, scale):
+    avg_age = stats[stats["Week"] == "Season"].age.mean()
+    age = pd.DataFrame(stats[stats["Week"] == "Season"].groupby("Owner").agg({"age": np.mean}))
+    scale = "sunsetdark"
+    fig = px.bar(age, x = "age", color = 'age', color_continuous_scale=scale) #can drop color option, but I like how it ranks everyone's age and shows a clear legend
+
+    fig.add_vline(x=avg_age)
+    fig.update_layout(yaxis={'categoryorder':'total descending'})
+    fig.update_xaxes(range = [18,30])
+    fig.update_layout(title_text="Average Age by Owner's Teams", title_x=0.5)
+    fig.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
+    return fig
+
+def get_player_line_graphs(stats, username):
+    users_stats = stats[stats["Owner"] == username]
+    users_wkly_stats = users_stats[users_stats["Week"] != "Season"]
+
+    fig = px.line(users_wkly_stats, x = "Week", y = "pts_half_ppr", facet_col = "Player", facet_col_wrap=4,
+                  width=1000, height=800)
+    fig.update_layout(title_text=f"{username}'s Player Trends Throughout the Year", title_x=0.5)
+    fig.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
+    return fig
+
+def get_RB_stats(stats, username, point_settings, scale):
+    #create dataframes that can filter by owner, then season, and then by position
+    users_stats = stats[stats["Owner"] == username]
+    user_szn_stats = users_stats[users_stats['Week'] == 'Season']
+    rb_stats = user_szn_stats[user_szn_stats["position"] == "RB"]
+
+    #calculate desired stats
+    rb_stats['ypc'] = round(rb_stats['rush_yd'] / rb_stats['rush_att'], 2)
+
+    rb_stats['ypr'] = round(rb_stats['rec_yd'] / rb_stats['rec'], 2)
+
+    rb_stats['rush_tds_per_game'] = round(rb_stats['rush_td'] / rb_stats['gp'], 3)
+    #if they never had a rush td set it to 0
+    rb_stats['rush_tds_per_game'] = np.where(rb_stats['rush_tds_per_game'].isnull(), 0, rb_stats['rush_tds_per_game'])
+
+    rb_stats['rec_tds_per_game'] = round(rb_stats['rec_td'] / rb_stats['gp'], 3)
+    #if they never had a rec td set it to 0
+    rb_stats['rec_tds_per_game'] = np.where(rb_stats['rec_tds_per_game'].isnull(), 0, rb_stats['rec_tds_per_game'])
+
+    rb_stats['ppg'] = rb_stats[point_settings] / rb_stats['gp']
+
+    #separate stats into two dif dfs for heatmap visualization
+    rb_stats1 = rb_stats[['Player', 'ypc', 'ypr']]
+    rb_stats1 = rb_stats1.set_index('Player')
+    rb_stats2 = rb_stats[['Player', 'rush_tds_per_game', 'rec_tds_per_game']]
+    rb_stats2 = rb_stats2.set_index('Player')
+
+    RB_YPC_YPR = px.imshow(rb_stats1, text_auto = True, aspect = "auto", color_continuous_scale=scale)
+    RB_YPC_YPR.update_layout(title_text=f"{username}'s RB's YPC and YPR", title_x=0.5)
+    RB_YPC_YPR.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=18
+    )
+
+    RB_TD = px.imshow(rb_stats2, text_auto = True, aspect = "auto", color_continuous_scale=scale)
+    RB_TD.update_layout(title_text=f"{username}'s RB's TD's Per Game", title_x=0.5)
+    RB_TD.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=18
+    )
+
+    avg_ppg = rb_stats.ppg.mean()
+    RB_PPG = px.bar(rb_stats, x = 'Player', y = 'ppg', color = 'ppg', text = 'ppg')
+    RB_PPG.add_hline(y=avg_ppg)
+    RB_PPG.update_layout(title_text=f"{username}'s RB's PPG", title_x=0.5)
+    RB_PPG.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
+
+    rb_stats['tot_ypg'] = round((rb_stats['rec_yd'] + rb_stats['rush_yd']) / rb_stats['gp'], 2)
+    tot_ypg = rb_stats.tot_ypg.mean()
+
+    RB_YPG = px.bar(rb_stats,x = 'Player', y = 'tot_ypg', color = 'tot_ypg', text = 'tot_ypg', color_continuous_scale=scale)
+    RB_YPG.add_hline(y=tot_ypg)
+
+    return RB_YPC_YPR, RB_TD, RB_PPG, RB_YPG
+
+def get_PPG(stats, username, point_settings, scale):
+    #ppg stats for all players on your team
+    users_stats = stats[stats["Owner"] == username]
+    user_szn_stats = users_stats[users_stats['Week'] == 'Season']
+    user_szn_stats['ppg'] = user_szn_stats[point_settings] / user_szn_stats['gp']
+    ppg = user_szn_stats[['Player', 'ppg']]
+    ppg = ppg.set_index('Player')
+    fig = px.imshow(ppg, text_auto = True, aspect = "auto", color_continuous_scale=scale)
+    return fig
 
 server.run()
