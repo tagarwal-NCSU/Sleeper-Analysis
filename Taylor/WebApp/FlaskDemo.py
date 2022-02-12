@@ -53,6 +53,14 @@ def dated_url_for(endpoint, **values):
 def home():
     return render_template("home.html")
 
+@server.route("/about")
+def about():
+    return render_template("about.html")
+
+@server.route("/contact")
+def contact():
+    return render_template("contact.html")
+
 @server.route("/leagues")
 def leagues():
     # find user's sleeper username
@@ -84,7 +92,7 @@ def leagues():
         width = 1
     league_ids = [league['league_id'] for league in leagues]
     league_names = [league['name'] for league in leagues]
-    return render_template("leagues.html", height = height, width = width, total_leagues = total_leagues, league_ids = league_ids, league_names = league_names)
+    return render_template("leagues.html", total_leagues = total_leagues, league_ids = league_ids, league_names = league_names)
 
 @server.route("/viz")
 def viz():
@@ -217,4 +225,4 @@ def fetch_data(league_id):
 
     return stats
 
-server.run(debug = True)
+server.run()

@@ -39,6 +39,10 @@ label {
     font-family: serif; 
     color: #ffffff;
 }
+p {
+    font-family: serif; 
+    color: #ffffff;
+}
 .content {
     height: 200px;
     position: relative;
