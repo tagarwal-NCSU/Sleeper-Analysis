@@ -14,7 +14,7 @@
             <table class="leaguelist">
             {% for i in range(total_leagues) %}
             <tr>
-                <td><a href="/viz?username{{username}}&league_id={{league_ids[i]}}">{{league_names[i]}}</a></td>
+                <td><a href="/viz?username={{username}}&league_id={{league_ids[i]}}&league_name={{league_names[i]}}">{{league_names[i]}}</a></td>
             </tr>
             {% endfor %}
             </table>

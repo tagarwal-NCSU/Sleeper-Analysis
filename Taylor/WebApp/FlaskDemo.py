@@ -102,6 +102,7 @@ def leagues():
 def viz():
     league_id = request.args.get('league_id', "-")
     username = request.args.get('username', "-")
+    league_name = request.args.get('league_name', "-")
     if str(league_id) == "-":
         return redirect(url_for(''))
 
@@ -113,44 +114,72 @@ def viz():
 
     avg_age_position = get_avg_age_position(stats)
     avg_age_overall = get_avg_age_overall(stats, scale)
-    # player_line_graphs = get_player_line_graphs(stats, username)
+    player_line_graphs = get_player_line_graphs(stats, username)
     RB_YPC_YPR, RB_TD, RB_PPG, RB_YPG = get_RB_stats(stats, username, point_settings, scale)
     PPG = get_PPG(stats, username, point_settings, scale)
 
     app.layout = html.Div(children = [
-        html.H1("Hello!"),
-        dcc.Graph(
-            id = 'example',
-            figure = avg_age_position
-            ),
-        dcc.Graph(
-            id = 'example',
-            figure = avg_age_overall
-            ),
-        # dcc.Graph(
-        #     id = 'example',
-        #     figure = player_line_graphs
-        #     ),
-        dcc.Graph(
-            id = 'example',
-            figure = RB_YPC_YPR
-            ),
-        dcc.Graph(
-            id = 'example',
-            figure = RB_TD
-            ),
-        dcc.Graph(
-            id = 'example',
-            figure = RB_PPG
-            ),
-        dcc.Graph(
-            id = 'example',
-            figure = RB_YPG
-            ),
-        dcc.Graph(
-            id = 'example',
-            figure = PPG
-            )
+        html.H1(league_name),
+
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = avg_age_position
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = avg_age_overall
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
+
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = player_line_graphs
+                ),
+        ], style={'width': '49%', 'height': '700px', 'display': 'inline-block'}
+        ),
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = PPG
+                ),
+        ], style={'width': '49%', 'height': '700px', 'display': 'inline-block'}
+        ),
+
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = RB_YPC_YPR
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = RB_TD
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
+
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = RB_PPG
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
+        html.Div(children=[
+            dcc.Graph(
+                id = 'example',
+                figure = RB_YPG
+                ),
+        ], style={'width': '49%', 'display': 'inline-block'}
+        ),
     ])
     # Render template
     return app.index()
@@ -294,8 +323,7 @@ def get_player_line_graphs(stats, username):
     users_stats = stats[stats["Owner"] == username]
     users_wkly_stats = users_stats[users_stats["Week"] != "Season"]
 
-    fig = px.line(users_wkly_stats, x = "Week", y = "pts_half_ppr", facet_col = "Player", facet_col_wrap=4,
-                  width=1000, height=800)
+    fig = px.line(users_wkly_stats, x = "Week", y = "pts_half_ppr", facet_col = "Player", facet_col_wrap=4, height=700)
     fig.update_layout(title_text=f"{username}'s Player Trends Throughout the Year", title_x=0.5)
     fig.update_layout(
         font_family="Times New Roman",
@@ -304,6 +332,16 @@ def get_player_line_graphs(stats, username):
         title_font_color="blue",
         title_font_size=24
     )
+    return fig
+
+def get_PPG(stats, username, point_settings, scale):
+    #ppg stats for all players on your team
+    users_stats = stats[stats["Owner"] == username]
+    user_szn_stats = users_stats[users_stats['Week'] == 'Season']
+    user_szn_stats['ppg'] = user_szn_stats[point_settings] / user_szn_stats['gp']
+    ppg = user_szn_stats[['Player', 'ppg']]
+    ppg = ppg.set_index('Player')
+    fig = px.imshow(ppg, text_auto = True, aspect = "auto", color_continuous_scale=scale, height=700)
     return fig
 
 def get_RB_stats(stats, username, point_settings, scale):
@@ -372,15 +410,5 @@ def get_RB_stats(stats, username, point_settings, scale):
     RB_YPG.add_hline(y=tot_ypg)
 
     return RB_YPC_YPR, RB_TD, RB_PPG, RB_YPG
-
-def get_PPG(stats, username, point_settings, scale):
-    #ppg stats for all players on your team
-    users_stats = stats[stats["Owner"] == username]
-    user_szn_stats = users_stats[users_stats['Week'] == 'Season']
-    user_szn_stats['ppg'] = user_szn_stats[point_settings] / user_szn_stats['gp']
-    ppg = user_szn_stats[['Player', 'ppg']]
-    ppg = ppg.set_index('Player')
-    fig = px.imshow(ppg, text_auto = True, aspect = "auto", color_continuous_scale=scale)
-    return fig
 
 server.run()
