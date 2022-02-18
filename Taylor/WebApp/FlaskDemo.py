@@ -353,6 +353,14 @@ def get_PPG(stats, username, point_settings, scale):
     ppg = user_szn_stats[['Player', 'ppg']]
     ppg = ppg.set_index('Player')
     fig = px.imshow(ppg, text_auto = True, aspect = "auto", color_continuous_scale=scale, height=700)
+    fig.update_layout(title_text=f"{username}'s Player's Points Per Game", title_x=0.5)
+    fig.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
     return fig
 
 def get_pos_stats(stats, username, point_settings, scale, position):
@@ -373,7 +381,7 @@ def get_pos_stats(stats, username, point_settings, scale, position):
     #if they never had a rec td set it to 0
     pos_stats['rec_tds_per_game'] = np.where(pos_stats['rec_tds_per_game'].isnull(), 0, pos_stats['rec_tds_per_game'])
 
-    pos_stats['ppg'] = pos_stats[point_settings] / pos_stats['gp']
+    pos_stats['ppg'] = round(pos_stats[point_settings] / pos_stats['gp'], 1)
 
     #separate stats into two dif dfs for heatmap visualization
     pos_stats1 = pos_stats[['Player', 'ypc', 'ypr']]
@@ -382,7 +390,7 @@ def get_pos_stats(stats, username, point_settings, scale, position):
     pos_stats2 = pos_stats2.set_index('Player')
 
     POS_YPC_YPR = px.imshow(pos_stats1, text_auto = True, aspect = "auto", color_continuous_scale=scale)
-    POS_YPC_YPR.update_layout(title_text=f"{username}'s RB's YPC and YPR", title_x=0.5)
+    POS_YPC_YPR.update_layout(title_text=f"{username}'s RB's Yards Per Carry and Yards Per Reception", title_x=0.5)
     POS_YPC_YPR.update_layout(
         font_family="Times New Roman",
         font_color="black",
@@ -400,11 +408,12 @@ def get_pos_stats(stats, username, point_settings, scale, position):
         title_font_color="blue",
         title_font_size=18
     )
+    POS_TD.update_layout(showlegend=False)
 
     avg_ppg = pos_stats.ppg.mean()
     POS_PPG = px.bar(pos_stats, x = 'Player', y = 'ppg', color = 'ppg', text = 'ppg')
     POS_PPG.add_hline(y=avg_ppg)
-    POS_PPG.update_layout(title_text=f"{username}'s RB's PPG", title_x=0.5)
+    POS_PPG.update_layout(title_text=f"{username}'s RB's Points Per Game", title_x=0.5)
     POS_PPG.update_layout(
         font_family="Times New Roman",
         font_color="black",
@@ -412,12 +421,21 @@ def get_pos_stats(stats, username, point_settings, scale, position):
         title_font_color="blue",
         title_font_size=24
     )
+    POS_PPG.update_layout(showlegend=False)
 
     pos_stats['tot_ypg'] = round((pos_stats['rec_yd'] + pos_stats['rush_yd']) / pos_stats['gp'], 2)
-    tot_ypg = pos_stats.tot_ypg.mean()
+    tot_ypg = round(pos_stats.tot_ypg.mean(), 1)
 
     POS_YPG = px.bar(pos_stats,x = 'Player', y = 'tot_ypg', color = 'tot_ypg', text = 'tot_ypg', color_continuous_scale=scale)
     POS_YPG.add_hline(y=tot_ypg)
+    POS_PPG.update_layout(title_text=f"{username}'s RB's Yards Per Game", title_x=0.5)
+    POS_PPG.update_layout(
+        font_family="Times New Roman",
+        font_color="black",
+        title_font_family="Times New Roman",
+        title_font_color="blue",
+        title_font_size=24
+    )
 
     return POS_YPC_YPR, POS_TD, POS_PPG, POS_YPG
 
