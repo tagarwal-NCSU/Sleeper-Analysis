@@ -108,9 +108,24 @@ def viz():
 
     stats = fetch_data(league_id)
 
+    URL = f"https://api.sleeper.app/v1/league/{league_id}"
+    response = requests.get(URL)
+    league_info = response.json()
+    ppr = league_info['scoring_settings']['rec']
+    if ppr == 1.0:
+        scoring_type = "PPR "
+        point_settings = "pts_ppr"
+    elif ppr == 0.5:
+        scoring_type = "Half PPR "
+        point_settings = "pts_half_ppr"
+    else:
+        scoring_type = ""
+        point_settings = "pts_std"
+
+
     scale = "sunsetdark"
 
-    point_settings = "pts_half_ppr"
+    
     position = "RB"
 
     avg_age_position = get_avg_age_position(stats)
@@ -131,20 +146,21 @@ def viz():
         ),
         
         html.H1(league_name, style={'text-align': 'center'}),
+        html.P(f"*Point values shown are based on standard {scoring_type}scoring settings"),
 
         html.Div(children=[
             dcc.Graph(
                 id = 'example',
                 figure = avg_age_position
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
         html.Div(children=[
             dcc.Graph(
                 id = 'example',
                 figure = avg_age_overall
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
 
         html.Div(children=[
@@ -152,14 +168,14 @@ def viz():
                 id = 'example',
                 figure = player_line_graphs
                 ),
-        ], style={'width': '49%', 'height': '700px', 'display': 'inline-block'}
+        ]
         ),
         html.Div(children=[
             dcc.Graph(
                 id = 'example',
                 figure = PPG
                 ),
-        ], style={'width': '49%', 'height': '700px', 'display': 'inline-block'}
+        ]
         ),
 
         html.Div(children=[
@@ -167,14 +183,14 @@ def viz():
                 id = 'example',
                 figure = POS_YPC_YPR
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
         html.Div(children=[
             dcc.Graph(
                 id = 'example',
                 figure = POS_TD
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
 
         html.Div(children=[
@@ -182,14 +198,14 @@ def viz():
                 id = 'example',
                 figure = POS_PPG
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
         html.Div(children=[
             dcc.Graph(
                 id = 'example',
                 figure = POS_YPG
                 ),
-        ], style={'width': '49%', 'display': 'inline-block'}
+        ]
         ),
     ], style={'text-align': 'center'})
     # Render template
@@ -334,7 +350,7 @@ def get_player_line_graphs(stats, username):
     users_stats = stats[stats["Owner"] == username]
     users_wkly_stats = users_stats[users_stats["Week"] != "Season"]
 
-    fig = px.line(users_wkly_stats, x = "Week", y = "pts_half_ppr", facet_col = "Player", facet_col_wrap=4, height=700)
+    fig = px.line(users_wkly_stats, x = "Week", y = "pts_half_ppr", facet_col = "Player", facet_col_wrap=4, height=1500)
     fig.update_layout(title_text=f"{username}'s Player Trends Throughout the Year", title_x=0.5)
     fig.update_layout(
         font_family="Times New Roman",
@@ -381,7 +397,7 @@ def get_pos_stats(stats, username, point_settings, scale, position):
     #if they never had a rec td set it to 0
     pos_stats['rec_tds_per_game'] = np.where(pos_stats['rec_tds_per_game'].isnull(), 0, pos_stats['rec_tds_per_game'])
 
-    pos_stats['ppg'] = round(pos_stats[point_settings] / pos_stats['gp'], 1)
+    pos_stats['ppg'] = round(pos_stats[point_settings] / pos_stats['gp'], 2)
 
     #separate stats into two dif dfs for heatmap visualization
     pos_stats1 = pos_stats[['Player', 'ypc', 'ypr']]
@@ -428,8 +444,8 @@ def get_pos_stats(stats, username, point_settings, scale, position):
 
     POS_YPG = px.bar(pos_stats,x = 'Player', y = 'tot_ypg', color = 'tot_ypg', text = 'tot_ypg', color_continuous_scale=scale)
     POS_YPG.add_hline(y=tot_ypg)
-    POS_PPG.update_layout(title_text=f"{username}'s RB's Yards Per Game", title_x=0.5)
-    POS_PPG.update_layout(
+    POS_YPG.update_layout(title_text=f"{username}'s RB's YPG", title_x=0.5)
+    POS_YPG.update_layout(
         font_family="Times New Roman",
         font_color="black",
         title_font_family="Times New Roman",
