@@ -43,6 +43,32 @@ p {
     font-family: serif; 
     color: #ffffff;
 }
+.loading div {
+    height: 100px;
+    width: 100px;
+    position: relative;
+    border: 3px #ffffff;
+    margin: 0;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: none;
+}
+.loading img {
+    height: 100px;
+    width: 100px;
+    position: relative;
+    border: 3px #ffffff;
+    margin: 0;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: none;
+}
 .content {
     height: 200px;
     position: relative;

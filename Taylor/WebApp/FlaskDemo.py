@@ -134,6 +134,7 @@ def viz():
     POS_YPC_YPR, POS_TD, POS_PPG, POS_YPG = get_pos_stats(stats, username, point_settings, scale, position)
     PPG = get_PPG(stats, username, point_settings, scale)
 
+    app.title = f"{league_name} - Pillow"
     app.layout = html.Div(children = [
         html.Header(
         html.Nav(children = [
@@ -145,6 +146,7 @@ def viz():
         ])
         ),
         
+        html.Br(),
         html.H1(league_name, style={'text-align': 'center'}),
         html.P(f"*Point values shown are based on standard {scoring_type}scoring settings"),
 
@@ -153,7 +155,7 @@ def viz():
                 id = 'example',
                 figure = avg_age_position
                 ),
-        ]
+        ], style={'display': 'inline'}
         ),
         html.Div(children=[
             dcc.Graph(
@@ -336,7 +338,7 @@ def get_avg_age_overall(stats, scale):
     fig.add_vline(x=avg_age)
     fig.update_layout(yaxis={'categoryorder':'total descending'})
     fig.update_xaxes(range = [18,30])
-    fig.update_layout(title_text="Average Age by Owner's Teams", title_x=0.5)
+    fig.update_layout(title_text="Average Team Age by Owner", title_x=0.5)
     fig.update_layout(
         font_family="Times New Roman",
         font_color="black",

@@ -1,5 +1,15 @@
 <html>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+    <head>
+        <title>Leagues - Pillow</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+        <script type="text/javascript">// <![CDATA[
+            function loading(){
+                document.getElementById('content').style.display = 'none';
+                document.getElementById('loading').style.display = 'block'; 
+                document.getElementById('loadingimg').style.display = 'block';       
+            }
+        // ]]></script>
+    </head>
     <body class="leaguebody">
         <header>
             <nav>  
@@ -8,13 +18,14 @@
                     <li><a href="/about"> About </a></li>  
                     <li><a href="/contact"> Contact </a></li>
                 </ul>  
-            </nav>  
+            </nav>
         </header>
-        <div class="content">
+        <div class="loading" id="loading"><img id="loadingimg" class="loading" src="{{ url_for('static', filename='loadingimage.gif') }}"/></div>
+        <div class="content" id="content">
             <table class="leaguelist">
             {% for i in range(total_leagues) %}
             <tr>
-                <td><a href="/viz?username={{username}}&league_id={{league_ids[i]}}&league_name={{league_names[i]}}">{{league_names[i]}}</a></td>
+                <td><a href="/viz?username={{username}}&league_id={{league_ids[i]}}&league_name={{league_names[i]}}" onclick="loading();">{{league_names[i]}}</a></td>
             </tr>
             {% endfor %}
             </table>
