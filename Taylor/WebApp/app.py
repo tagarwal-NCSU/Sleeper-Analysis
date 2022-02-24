@@ -383,6 +383,7 @@ def get_PPG(stats, username, point_settings, scale):
 
 def get_pos_stats(stats, username, point_settings, scale, position):
     # Feature to be added later - Use other positions
+    # position = "QB", "WR", etc
     #create dataframes that can filter by owner, then season, and then by position
     pos_stats = stats[(stats["Owner"] == username) & (stats['Week'] == 'Season') & (stats["position"] == position)].copy()
 
